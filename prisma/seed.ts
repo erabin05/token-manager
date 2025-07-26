@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -10,18 +10,40 @@ async function main() {
   await prisma.theme.deleteMany({});
   await prisma.user.deleteMany({});
 
-  // Créer un utilisateur seulement s'il n'existe pas
-  const existingUser = await prisma.user.findUnique({
-    where: { email: 'alice@example.com' },
-  });
+  // Créer des utilisateurs avec différents rôles
+  const users = [
+    {
+      email: 'viewer@example.com',
+      name: 'Viewer User',
+      role: UserRole.VIEWER,
+    },
+    {
+      email: 'maintainer@example.com',
+      name: 'Maintainer User',
+      role: UserRole.MAINTAINER,
+    },
+    {
+      email: 'admin@example.com',
+      name: 'Admin User',
+      role: UserRole.ADMIN,
+    },
+    {
+      email: 'alice@example.com',
+      name: 'Alice',
+      role: UserRole.VIEWER,
+    },
+  ];
 
-  if (!existingUser) {
-    await prisma.user.create({
-      data: {
-        email: 'alice@example.com',
-        name: 'Alice',
-      },
+  for (const userData of users) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: userData.email },
     });
+
+    if (!existingUser) {
+      await prisma.user.create({
+        data: userData,
+      });
+    }
   }
 
   // Créer des thèmes seulement s'ils n'existent pas

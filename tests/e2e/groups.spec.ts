@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { PrismaClient } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import {
   assertResponseOk,
   assertEntityExists,
@@ -8,23 +8,18 @@ import {
   assertEntityDeleted,
 } from './utils/assertions';
 import { TestDataFactory, generateUniqueName } from './utils/factories';
-
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: 'postgresql://user:password@localhost:5433/token_manager_test',
-    },
-  },
-});
+import { prisma, createUserWithRole, createAuthHeaders } from './utils/auth';
+import { cleanupDatabaseExceptThemes } from './utils/database';
 
 test.describe('Groups API E2E Tests', () => {
+  let maintainerUser: any;
+
   test.beforeEach(async () => {
     // Clean up the database before each test (except themes)
-    await prisma.tokenValue.deleteMany();
-    await prisma.token.deleteMany();
-    await prisma.tokenGroup.deleteMany();
-    await prisma.user.deleteMany();
-    // Do not delete themes - each test will create the ones it needs
+    await cleanupDatabaseExceptThemes();
+
+    // Créer un utilisateur maintainer pour les tests
+    maintainerUser = await createUserWithRole(UserRole.MAINTAINER);
   });
 
   test.afterAll(async () => {
@@ -37,6 +32,7 @@ test.describe('Groups API E2E Tests', () => {
 
     // Create group via API
     const createResponse = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: groupName },
     });
     assertResponseOk(createResponse, 'group creation');
@@ -61,6 +57,7 @@ test.describe('Groups API E2E Tests', () => {
 
     // Create parent group first
     const parentResponse = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: parentName },
     });
     assertResponseOk(parentResponse, 'parent group creation');
@@ -69,6 +66,7 @@ test.describe('Groups API E2E Tests', () => {
 
     // Create child group with parent reference
     const childResponse = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: childName, parentId: parentGroup.id },
     });
     assertResponseOk(childResponse, 'child group creation');
@@ -94,6 +92,7 @@ test.describe('Groups API E2E Tests', () => {
   test('should delete group and verify DB state', async ({ request }) => {
     // 1. Create a group first
     const createResponse = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: 'group-to-delete' },
     });
     expect(createResponse.ok()).toBeTruthy();
@@ -108,7 +107,9 @@ test.describe('Groups API E2E Tests', () => {
     expect(existingGroup).toBeTruthy();
 
     // 3. Delete group via API
-    const deleteResponse = await request.delete(`/groups/${groupId}`);
+    const deleteResponse = await request.delete(`/groups/${groupId}`, {
+      headers: createAuthHeaders(maintainerUser.id),
+    });
     expect(deleteResponse.ok()).toBeTruthy();
 
     // 4. Verify DB state
@@ -127,17 +128,21 @@ test.describe('Groups API E2E Tests', () => {
 
     // Create test groups
     const group1Response = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: groupName1 },
     });
     assertResponseOk(group1Response, 'first group creation');
 
     const group2Response = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: groupName2 },
     });
     assertResponseOk(group2Response, 'second group creation');
 
     // Get groups via API
-    const getResponse = await request.get('/groups');
+    const getResponse = await request.get('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
+    });
     assertResponseOk(getResponse, 'groups retrieval');
 
     const groups = await getResponse.json();
@@ -177,6 +182,7 @@ test.describe('Groups API E2E Tests', () => {
 
     // Create parent group
     const parentResponse = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: parentName },
     });
     assertResponseOk(parentResponse, 'parent group creation');
@@ -184,6 +190,7 @@ test.describe('Groups API E2E Tests', () => {
 
     // Create child group
     const childResponse = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: childName, parentId: parentGroup.id },
     });
     assertResponseOk(childResponse, 'child group creation');
@@ -191,6 +198,7 @@ test.describe('Groups API E2E Tests', () => {
 
     // Create token in parent group
     const tokenResponse = await request.post('/tokens', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: {
         name: tokenName,
         groupId: parentGroup.id,
@@ -200,7 +208,9 @@ test.describe('Groups API E2E Tests', () => {
     assertResponseOk(tokenResponse, 'token creation');
 
     // Get specific group via API
-    const getResponse = await request.get(`/groups/${parentGroup.id}`);
+    const getResponse = await request.get(`/groups/${parentGroup.id}`, {
+      headers: createAuthHeaders(maintainerUser.id),
+    });
     assertResponseOk(getResponse, 'group retrieval');
 
     const group = await getResponse.json();
@@ -226,18 +236,21 @@ test.describe('Groups API E2E Tests', () => {
 
     // Create parent group with child
     const parentResponse = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: parentName },
     });
     assertResponseOk(parentResponse, 'parent group creation');
     const parentGroup = await parentResponse.json();
 
     const childResponse = await request.post('/groups', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: childName, parentId: parentGroup.id },
     });
     assertResponseOk(childResponse, 'child group creation');
 
     // Create tokens in both groups
     const parentTokenResponse = await request.post('/tokens', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: {
         name: parentTokenName,
         groupId: parentGroup.id,
@@ -248,6 +261,7 @@ test.describe('Groups API E2E Tests', () => {
 
     const childGroup = await childResponse.json();
     const childTokenResponse = await request.post('/tokens', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: {
         name: childTokenName,
         groupId: childGroup.id,
@@ -257,7 +271,9 @@ test.describe('Groups API E2E Tests', () => {
     assertResponseOk(childTokenResponse, 'child token creation');
 
     // Delete parent group
-    const deleteResponse = await request.delete(`/groups/${parentGroup.id}`);
+    const deleteResponse = await request.delete(`/groups/${parentGroup.id}`, {
+      headers: createAuthHeaders(maintainerUser.id),
+    });
     assertResponseOk(deleteResponse, 'group deletion');
 
     // Verify cascade deletion

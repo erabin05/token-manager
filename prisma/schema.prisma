@@ -14,10 +14,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  VIEWER
+  MAINTAINER
+  ADMIN
+}
+
 model User {
-  id    Int    @id @default(autoincrement())
-  email String @unique
+  id    Int      @id @default(autoincrement())
+  email String   @unique
   name  String
+  role  UserRole @default(VIEWER)
 }
 
 model Token {

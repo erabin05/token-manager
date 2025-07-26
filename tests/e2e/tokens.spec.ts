@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { PrismaClient } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import {
   assertResponseOk,
   assertEntityExists,
@@ -8,23 +8,18 @@ import {
   assertEntityDeleted,
 } from './utils/assertions';
 import { TestDataFactory, generateUniqueName } from './utils/factories';
-
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: 'postgresql://user:password@localhost:5433/token_manager_test',
-    },
-  },
-});
+import { prisma, createUserWithRole, createAuthHeaders } from './utils/auth';
+import { cleanupDatabaseExceptThemes } from './utils/database';
 
 test.describe('Tokens API E2E Tests', () => {
+  let maintainerUser: any;
+
   test.beforeEach(async () => {
     // Clean up the database before each test (except themes)
-    await prisma.tokenValue.deleteMany();
-    await prisma.token.deleteMany();
-    await prisma.tokenGroup.deleteMany();
-    await prisma.user.deleteMany();
-    // Do not delete themes - each test will create the ones it needs
+    await cleanupDatabaseExceptThemes();
+
+    // Créer un utilisateur maintainer pour les tests
+    maintainerUser = await createUserWithRole(UserRole.MAINTAINER);
   });
 
   test.afterAll(async () => {
@@ -44,6 +39,7 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Create token via API
     const createResponse = await request.post('/tokens', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: {
         name: tokenName,
         defaultValue: expectedValue,
@@ -80,6 +76,7 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Create token via API
     const createResponse = await request.post('/tokens', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: {
         name: tokenName,
         defaultValue: '#000000',
@@ -97,7 +94,9 @@ test.describe('Tokens API E2E Tests', () => {
     assertEntityExists(existingToken, 'existing token');
 
     // Delete token via API
-    const deleteResponse = await request.delete(`/tokens/${tokenId}`);
+    const deleteResponse = await request.delete(`/tokens/${tokenId}`, {
+      headers: createAuthHeaders(maintainerUser.id),
+    });
     assertResponseOk(deleteResponse, 'token deletion');
 
     // Verify token is deleted from DB
@@ -126,17 +125,21 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Create tokens via API
     const token1Response = await request.post('/tokens', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: tokenName1, defaultValue: '#111111' },
     });
     assertResponseOk(token1Response, 'first token creation');
 
     const token2Response = await request.post('/tokens', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: { name: tokenName2, defaultValue: '#222222' },
     });
     assertResponseOk(token2Response, 'second token creation');
 
     // Get tokens via API
-    const getResponse = await request.get('/tokens');
+    const getResponse = await request.get('/tokens', {
+      headers: createAuthHeaders(maintainerUser.id),
+    });
     assertResponseOk(getResponse, 'tokens retrieval');
 
     const tokens = await getResponse.json();
@@ -168,6 +171,7 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Create token via API
     const createResponse = await request.post('/tokens', {
+      headers: createAuthHeaders(maintainerUser.id),
       data: {
         name: tokenName,
         defaultValue: '#333333',
@@ -179,7 +183,9 @@ test.describe('Tokens API E2E Tests', () => {
     const tokenId = createdToken.id;
 
     // Get specific token via API
-    const getResponse = await request.get(`/tokens/${tokenId}`);
+    const getResponse = await request.get(`/tokens/${tokenId}`, {
+      headers: createAuthHeaders(maintainerUser.id),
+    });
     assertResponseOk(getResponse, 'token retrieval');
 
     const token = await getResponse.json();

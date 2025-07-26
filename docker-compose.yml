@@ -30,7 +30,7 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/token_manager_db
     ports:
-      - '${APP_DEV_PORT:-3000}:3000'
+      - '${APP_DEV_PORT:-3001}:3000'
     volumes:
       - .:/app
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
