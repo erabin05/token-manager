@@ -9,6 +9,7 @@ Un projet Node.js avec TypeScript, Prisma ORM et PostgreSQL, conteneurisé avec 
 - **ORM**: Prisma
 - **Conteneurisation**: Docker avec docker-compose
 - **Formatage**: Prettier
+- **Hooks Git**: Husky + lint-staged
 
 ## Structure du projet
 
@@ -20,6 +21,8 @@ token-manager/
 │   ├── schema.prisma      # Schéma de base de données
 │   ├── seed.ts           # Script de données de test
 │   └── migrations/       # Migrations de base de données
+├── .husky/               # Hooks Git
+│   └── pre-commit        # Hook de pré-commit
 ├── Dockerfile            # Configuration Docker pour l'app
 ├── docker-compose.yml    # Orchestration des services
 ├── package.json          # Dépendances Node.js
@@ -67,20 +70,26 @@ token-manager/
    cd token-manager
    ```
 
-2. **Lancer les services**
+2. **Installer les dépendances**
+
+   ```bash
+   npm install
+   ```
+
+3. **Lancer les services**
 
    ```bash
    docker-compose up -d
    ```
 
-3. **Créer les migrations et insérer les données de test**
+4. **Créer les migrations et insérer les données de test**
 
    ```bash
    docker-compose exec app npx prisma migrate dev --name init
    docker-compose exec app npx ts-node prisma/seed.ts
    ```
 
-4. **Tester l'API**
+5. **Tester l'API**
    ```bash
    curl http://localhost:3000/users
    curl http://localhost:3000/tokens
@@ -267,3 +276,25 @@ Le projet utilise Prettier pour maintenir un style de code cohérent.
 
 - `npm run format` : Formate tous les fichiers
 - `npm run format:check` : Vérifie le formatage sans modifier
+
+## Hooks Git
+
+Le projet utilise **Husky** et **lint-staged** pour automatiser le formatage du code.
+
+### Fonctionnement :
+
+- **Pre-commit hook** : S'exécute automatiquement avant chaque commit
+- **lint-staged** : Formate uniquement les fichiers modifiés avec Prettier
+- **Validation** : Le commit est bloqué si le formatage échoue
+
+### Avantages :
+
+- Code toujours formaté de manière cohérente
+- Pas besoin de penser au formatage manuellement
+- Évite les conflits de style dans l'équipe
+
+### Configuration :
+
+- **Husky** : Gère les hooks Git
+- **lint-staged** : Exécute Prettier sur les fichiers staged
+- **Script prepare** : Installe automatiquement les hooks lors de `npm install`

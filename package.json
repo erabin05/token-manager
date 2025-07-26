@@ -8,7 +8,13 @@
     "start": "node dist/server.js",
     "prisma:seed": "ts-node prisma/seed.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts,json,md}": [
+      "prettier --write"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -25,6 +31,8 @@
     "typescript": "^5.8.3"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "prettier": "^3.6.2"
   }
 }
