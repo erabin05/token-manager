@@ -24,10 +24,13 @@
     "docker:switch:prod": "./scripts/switch-env.sh prod",
     "db:restore": "./scripts/restore-db.sh",
     "docker:dev": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev up --build -d",
+    "docker:dev:traefik": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev logs -f traefik",
+    "docker:dev:playwright": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev logs -f playwright-e2e",
     "docker:dev:logs": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev logs -f",
     "docker:dev:down": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev down",
     "docker:dev:restart": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev restart",
     "docker:dev:studio": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev logs -f prisma-studio",
+    "docker:dev:playwright": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev logs -f playwright-ui",
     "docker:prod": "docker-compose -f docker-compose.prod.yml --project-name token-manager-prod up --build -d",
     "docker:prod:down": "docker-compose -f docker-compose.prod.yml --project-name token-manager-prod down",
     "deploy": "./scripts/deploy.sh"

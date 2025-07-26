@@ -32,9 +32,11 @@ A modern design token management system built with Fastify, Prisma, and PostgreS
    ```
 
 4. **Access the API**
-   - Main API: http://localhost:3000
-   - Development API: http://localhost:3001
-   - Health check: http://localhost:3000/health
+   - Main API: http://token-manager.server.localhost
+   - Prisma Studio: http://token-manager.prisma.localhost
+   - Playwright E2E: http://localhost:9323
+   - Traefik Dashboard: http://localhost:8080
+   - Health check: http://token-manager.server.localhost/health
 
 ## 🏗️ Build System
 
@@ -92,6 +94,8 @@ npm run docker:prod:down
 - `npm run docker:dev:down` - Stop development environment
 - `npm run docker:dev:restart` - Restart development environment
 - `npm run docker:dev:studio` - View Prisma Studio logs
+- `npm run docker:dev:playwright` - View Playwright E2E logs
+- `npm run docker:dev:traefik` - View Traefik logs
 - `npm run docker:prod` - Docker production
 - `npm run deploy` - Complete production deployment
 - `npm run check:env` - Vérifier l'état des environnements Docker
@@ -108,7 +112,7 @@ Le projet utilise Playwright pour les tests end-to-end. Vous pouvez choisir d'ex
 
 #### Tests rapides (développement quotidien)
 
-```bash
+````bash
 # Tests intelligents (détectent automatiquement l'environnement)
 npm run test:e2e
 
@@ -119,7 +123,10 @@ npm run test:e2e:ui:prod   # Interface sur prod
 # Mode debug
 npm run test:e2e:debug:dev  # Debug sur dev
 npm run test:e2e:debug:prod # Debug sur prod
-```
+
+# Mode watch avec HMR (dans Docker)
+npm run test:e2e:watch:dev  # Interface HMR sur dev
+npm run test:e2e:watch:prod # Interface HMR sur prod
 
 **Gestion intelligente des environnements Docker** : Les tests rapides :
 
@@ -133,7 +140,7 @@ npm run test:e2e:debug:prod # Debug sur prod
 ```bash
 # Tests avec nettoyage complet (utilise la même logique intelligente)
 npm run test:e2e:clean
-```
+````
 
 **Note** : Les tests intelligents (`npm run test:e2e`) sont maintenant suffisants pour la plupart des cas d'usage, y compris le développement quotidien et les validations.
 
