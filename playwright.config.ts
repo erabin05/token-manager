@@ -1,5 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Déterminer l'environnement de test (dev par défaut)
+const testEnv = process.env.TEST_ENV || 'dev';
+const composeFile =
+  testEnv === 'prod' ? 'docker-compose.prod.yml' : 'docker-compose.dev.yml';
+const baseURL =
+  testEnv === 'prod' ? 'http://localhost:3000' : 'http://localhost:3000';
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
@@ -10,7 +17,7 @@ export default defineConfig({
   outputDir: 'playwright-output/test-results',
   reporter: [['html', { outputFolder: 'playwright-output/reports' }]],
   use: {
-    baseURL: 'http://localhost:3001',
+    baseURL,
     trace: 'on-first-retry',
   },
   projects: [
@@ -20,10 +27,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command:
-      'docker-compose -f docker-compose.test.yml up --build -d && sleep 30',
-    url: 'http://localhost:3001/health',
-    reuseExistingServer: !process.env.CI,
+    command: `./scripts/switch-env.sh ${testEnv}`,
+    url: `${baseURL}/health`,
+    reuseExistingServer: true, // Réutilisation si l'environnement est déjà actif
     timeout: 300 * 1000,
   },
 });

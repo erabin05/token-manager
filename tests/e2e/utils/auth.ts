@@ -1,14 +1,8 @@
 import { PrismaClient, UserRole } from '@prisma/client';
 import { generateUniqueName } from './factories';
 
-// Configuration Prisma partagée
-export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: 'postgresql://user:password@localhost:5433/token_manager_test',
-    },
-  },
-});
+// Configuration Prisma partagée - utilise la configuration par défaut
+export const prisma = new PrismaClient();
 
 /**
  * Créer un utilisateur avec un rôle spécifique

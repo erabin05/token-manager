@@ -1,70 +1,69 @@
-# Configuration de Build et Déploiement
+# Build and Deployment Configuration
 
-## Configuration Esbuild
+This document provides detailed information about the build system and deployment configuration for the Token Manager project.
 
-Le projet utilise maintenant **esbuild** pour builder l'application TypeScript en JavaScript optimisé.
+## 🏗️ Build System Configuration
 
-### Scripts disponibles
+This project uses **esbuild** for fast TypeScript compilation and bundling, providing significant performance improvements over traditional TypeScript compilation.
 
-- `npm run build` - Build l'application avec esbuild
-- `npm run build:watch` - Build en mode watch (reconstruction automatique)
-- `npm run start` - Lance l'application buildée
+### Available Scripts
 
-### Configuration Esbuild
+- `npm run build` - Build the application with esbuild
+- `npm run build:watch` - Build in watch mode (automatic rebuilds)
+- `npm run start` - Run the built application
 
-Le fichier `esbuild.config.js` configure :
+### Esbuild Configuration
 
-- Bundle de tous les modules en un seul fichier
+The `esbuild.config.cjs` file configures:
+
+- Bundle all modules into a single file
 - Target Node.js 20
-- Format CommonJS
-- Sourcemaps en développement
-- Minification en production
-- Exclusion de `@prisma/client` (géré séparément)
+- CommonJS format for compatibility
+- Source maps in development
+- Minification in production
+- External `@prisma/client` (handled separately)
 
-## Docker
+## 🐳 Docker Configuration
 
-### Développement
+### Development Environment
 
 ```bash
-# Lancer l'environnement de développement (en arrière-plan)
+# Start development environment
 npm run docker:dev
 
-# Voir les logs en temps réel
-npm run docker:dev:logs
-
-# Ou lancer directement avec logs
+# Or directly
 docker-compose -f docker-compose.dev.yml --project-name token-manager-dev up --build
 ```
 
-### Production
+### Production Environment
 
 ```bash
-# Déployer en production
+# Deploy to production
 npm run deploy
 
-# Ou manuellement
+# Or manually
 npm run docker:prod
 
-# Arrêter la production
+# Stop production
 npm run docker:prod:down
 ```
 
-### Dockerfiles
+### Docker Files
 
-- `Dockerfile` - Pour le développement (avec hot reload)
-- `Dockerfile.prod` - Pour la production (optimisé, multi-stage)
+- `Dockerfile` - For development (with hot reload)
+- `Dockerfile.prod` - For production (optimized, multi-stage)
 
-### Docker Compose
+### Docker Compose Files
 
-- `docker-compose.dev.yml` - Configuration de développement
-- `docker-compose.prod.yml` - Configuration de production
+- `docker-compose.dev.yml` - Development configuration
+- `docker-compose.prod.yml` - Production configuration
 
-## Variables d'environnement
+## 🔧 Environment Variables
 
 ### Production
 
 ```bash
-# Base de données
+# Database
 POSTGRES_USER=user
 POSTGRES_PASSWORD=password
 POSTGRES_DB=token_manager_db
@@ -75,17 +74,83 @@ APP_PORT=3000
 NODE_ENV=production
 ```
 
-## Workflow de développement
+## 🔄 Development Workflow
 
-1. **Développement local** : `npm run dev`
-2. **Build** : `npm run build`
-3. **Test local** : `npm run start`
-4. **Déploiement** : `npm run deploy`
+1. **Local Development**: `npm run dev`
+2. **Build**: `npm run build`
+3. **Local Testing**: `npm run start`
+4. **Deployment**: `npm run deploy`
 
-## Avantages de cette configuration
+## 🚀 Benefits of This Configuration
 
-- **Performance** : esbuild est beaucoup plus rapide que tsc
-- **Bundle optimisé** : Un seul fichier JavaScript
-- **Sécurité** : Utilisateur non-root en production
-- **Multi-stage builds** : Images Docker plus petites
-- **Hot reload** : Développement plus fluide
+- **Performance**: esbuild is much faster than tsc
+- **Optimized Bundle**: Single JavaScript file
+- **Security**: Non-root user in production
+- **Multi-stage Builds**: Smaller Docker images
+- **Hot Reload**: Smoother development experience
+
+## 🧪 Testing
+
+### End-to-End Tests
+
+The project includes Playwright tests that run against the built application:
+
+```bash
+# Run e2e tests with build
+./scripts/test-e2e.sh
+
+# Or manually
+npm run build
+npx playwright test
+```
+
+### Test Environment
+
+Tests use a separate Docker environment (`docker-compose.test.yml`) to ensure isolation and consistency.
+
+## 📦 Deployment Scripts
+
+### Production Deployment
+
+The `scripts/deploy.sh` script provides a complete deployment workflow:
+
+1. Stops existing containers
+2. Builds and starts new containers
+3. Waits for database readiness
+4. Verifies application health
+5. Provides deployment status
+
+### Usage
+
+```bash
+# Full deployment
+npm run deploy
+
+# Manual deployment
+npm run docker:prod
+```
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Port Conflicts**: Ensure no other services are using ports 3000, 3001, or 5432
+2. **Docker Permissions**: Make sure Docker is running and you have proper permissions
+3. **Database Connection**: Verify database credentials and network connectivity
+
+### Logs
+
+```bash
+# Development logs
+npm run docker:dev:logs
+
+# Production logs
+docker-compose -f docker-compose.prod.yml --project-name token-manager-prod logs app
+```
+
+## 📚 Additional Resources
+
+- [esbuild Documentation](https://esbuild.github.io/)
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
+- [Prisma Documentation](https://www.prisma.io/docs/)
+- [Fastify Documentation](https://www.fastify.io/docs/)

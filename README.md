@@ -1,101 +1,193 @@
 # Token Manager
 
-Application de gestion de tokens avec Fastify, Prisma et PostgreSQL.
+A modern design token management system built with Fastify, Prisma, and PostgreSQL. This project provides a robust API for managing design tokens, themes, and user groups with a focus on performance and developer experience.
 
-## 🚀 Configuration de Build et Déploiement
+## 🚀 Quick Start
 
-### Build avec Esbuild
+### Prerequisites
 
-Le projet utilise **esbuild** pour builder l'application TypeScript en JavaScript optimisé.
+- Node.js 20+
+- Docker and Docker Compose
+- Git
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd token-manager
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Start the development environment**
+
+   ```bash
+   npm run docker:dev
+   ```
+
+4. **Access the API**
+   - Main API: http://localhost:3000
+   - Development API: http://localhost:3001
+   - Health check: http://localhost:3000/health
+
+## 🏗️ Build System
+
+This project uses **esbuild** for fast TypeScript compilation and bundling.
 
 ```bash
-# Build de l'application
+# Build the application
 npm run build
 
-# Build en mode watch
+# Build in watch mode
 npm run build:watch
 
-# Lancer l'application buildée
+# Run the built application
 npm run start
 ```
 
-### Docker
+## 🐳 Docker Environments
 
-#### Développement
+### Development
 
 ```bash
-# Lancer l'environnement de développement (en arrière-plan)
+# Start development environment (background)
 npm run docker:dev
 
-# Voir les logs en temps réel
+# View real-time logs
 npm run docker:dev:logs
 
-# Ou lancer directement avec logs
-docker-compose -f docker-compose.dev.yml --project-name token-manager-dev up --build
+# Stop development environment
+npm run docker:dev:down
+
+# Restart development environment
+npm run docker:dev:restart
 ```
 
-#### Production
+### Production
 
 ```bash
-# Déployer en production
+# Deploy to production
 npm run deploy
-# ou
+
+# Or manually
 npm run docker:prod
 
-# Arrêter la production
+# Stop production
 npm run docker:prod:down
 ```
 
-### Scripts disponibles
+## 📋 Available Scripts
 
-- `npm run dev` - Développement avec hot reload
-- `npm run build` - Build avec esbuild
-- `npm run start` - Lance l'application buildée
-- `npm run docker:dev` - Docker en développement (arrière-plan)
-- `npm run docker:dev:logs` - Voir les logs de développement
-- `npm run docker:dev:down` - Arrêter l'environnement de développement
-- `npm run docker:dev:restart` - Redémarrer l'environnement de développement
-- `npm run docker:prod` - Docker en production
-- `npm run deploy` - Déploiement complet en production
+- `npm run dev` - Development with hot reload
+- `npm run build` - Build with esbuild
+- `npm run start` - Run the built application
+- `npm run docker:dev` - Docker development (background)
+- `npm run docker:dev:logs` - View development logs
+- `npm run docker:dev:down` - Stop development environment
+- `npm run docker:dev:restart` - Restart development environment
+- `npm run docker:dev:studio` - View Prisma Studio logs
+- `npm run docker:prod` - Docker production
+- `npm run deploy` - Complete production deployment
+- `npm run check:env` - Vérifier l'état des environnements Docker
+- `npm run docker:switch:dev` - Switcher vers l'environnement Docker de développement
+- `npm run docker:switch:prod` - Switcher vers l'environnement Docker de production
+- `npm run db:restore` - Restaurer la base de données avec les données de test (seed)
+- `npm run test:users` - Créer des utilisateurs de test et afficher leurs IDs pour test-api.http
 
-## 📁 Structure du projet
+## 🧪 Testing
+
+### End-to-End Tests
+
+Le projet utilise Playwright pour les tests end-to-end. Vous pouvez choisir d'exécuter les tests sur l'environnement de développement ou de production :
+
+#### Tests rapides (développement quotidien)
+
+```bash
+# Tests intelligents (détectent automatiquement l'environnement)
+npm run test:e2e
+
+# Interface utilisateur pour les tests
+npm run test:e2e:ui:dev    # Interface sur dev
+npm run test:e2e:ui:prod   # Interface sur prod
+
+# Mode debug
+npm run test:e2e:debug:dev  # Debug sur dev
+npm run test:e2e:debug:prod # Debug sur prod
+```
+
+**Gestion intelligente des environnements Docker** : Les tests rapides :
+
+- **Détectent** automatiquement l'environnement Docker actuel (dev ou prod)
+- **Utilisent** l'environnement détecté (rapide)
+- **Démarrent** l'environnement dev par défaut si aucun n'est actif
+- **Affichent** l'environnement utilisé et la commande pour switcher
+
+#### Tests avec nettoyage complet (CI/CD, validation)
+
+```bash
+# Tests avec nettoyage complet (utilise la même logique intelligente)
+npm run test:e2e:clean
+```
+
+**Note** : Les tests intelligents (`npm run test:e2e`) sont maintenant suffisants pour la plupart des cas d'usage, y compris le développement quotidien et les validations.
+
+## 📁 Project Structure
 
 ```
 token-manager/
-├── src/                    # Code source TypeScript
-├── dist/                   # Code buildé avec esbuild
-├── prisma/                 # Schéma et migrations Prisma
-├── tests/                  # Tests Playwright
-├── docker-compose.dev.yml  # Configuration Docker développement
-├── docker-compose.prod.yml # Configuration Docker production
-├── Dockerfile.prod         # Dockerfile optimisé pour production
-└── esbuild.config.cjs      # Configuration esbuild
+├── src/                    # TypeScript source code
+├── dist/                   # Built code with esbuild
+├── prisma/                 # Prisma schema and migrations
+├── tests/                  # Playwright tests
+├── test-api.http          # Fichier de test API avec authentification
+├── docker-compose.dev.yml  # Docker development configuration
+├── docker-compose.prod.yml # Docker production configuration
+├── Dockerfile.prod         # Optimized production Dockerfile
+└── esbuild.config.cjs      # esbuild configuration
 ```
 
 ## 🔧 Configuration
 
-### Variables d'environnement
+### Environment Variables
 
 ```bash
-# Base de données
+# Database
 DATABASE_URL=postgresql://user:password@localhost:5432/token_manager_db
 
 # Application
 NODE_ENV=development
 ```
 
-## 🛠️ Développement
+## 🛠️ Development Workflow
 
-1. Installer les dépendances : `npm install`
-2. Configurer la base de données : `npx prisma migrate dev`
-3. Lancer en développement : `npm run dev`
+1. Install dependencies: `npm install`
+2. Set up database: `npx prisma migrate dev`
+3. Start development: `npm run dev`
 
-## 🚀 Déploiement
+## 🚀 Deployment
 
-1. Build de l'application : `npm run build`
-2. Test local : `npm run start`
-3. Déploiement Docker : `npm run deploy`
+1. Build application: `npm run build`
+2. Test locally: `npm run start`
+3. Deploy with Docker: `npm run deploy`
 
 ## 📚 Documentation
 
-Voir `BUILD.md` pour plus de détails sur la configuration de build et de déploiement.
+See `BUILD.md` for detailed build and deployment configuration.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `npm run test:e2e:clean` (tests sur dev) ou `npm run test:e2e:clean:prod` (tests sur prod)
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the ISC License.

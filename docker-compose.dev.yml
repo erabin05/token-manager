@@ -23,17 +23,5 @@ services:
       - .:/app
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
     restart: always
-  app-dev:
-    build: .
-    depends_on:
-      - db
-    environment:
-      DATABASE_URL: postgresql://user:password@db:5432/token_manager_db
-    ports:
-      - '${APP_DEV_PORT:-3001}:3000'
-    volumes:
-      - .:/app
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
-    restart: always
 volumes:
   db_data:

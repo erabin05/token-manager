@@ -1,12 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: 'postgresql://user:password@localhost:5433/token_manager_test',
-    },
-  },
-});
+const prisma = new PrismaClient();
 
 /**
  * Generate a unique name with timestamp and random number
