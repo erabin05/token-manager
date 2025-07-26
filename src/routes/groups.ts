@@ -39,4 +39,36 @@ export default async function groupRoutes(fastify: FastifyInstance) {
     const nested = buildGroupTree(groups as GroupNode[]);
     return nested;
   });
+
+  // Create a new group with optional parent
+  fastify.post('/groups', async (request, reply) => {
+    const { name, parentId } = request.body as {
+      name: string;
+      parentId?: number;
+    };
+    if (!name) {
+      return reply.status(400).send({ error: 'Group name is required' });
+    }
+    // Create the group
+    const group = await prisma.tokenGroup.create({
+      data: {
+        name,
+        parentId,
+      },
+    });
+    return reply.status(201).send(group);
+  });
+
+  // Delete a group and all its children and tokens
+  fastify.delete('/groups/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    try {
+      await prisma.tokenGroup.delete({
+        where: { id: parseInt(id) },
+      });
+      return reply.status(204).send();
+    } catch (e) {
+      return reply.status(404).send({ error: 'Group not found' });
+    }
+  });
 }

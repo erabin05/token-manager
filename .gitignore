@@ -107,3 +107,7 @@ prisma/migrations/
 *.sqlite3
 
 test-api.http
+
+# Playwright
+/playwright-output/
+/playwright-report/

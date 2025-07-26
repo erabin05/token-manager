@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: token_manager_db
     ports:
-      - "5432:5432"
+      - '${DB_PORT:-5432}:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
   app:
@@ -18,7 +18,7 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/token_manager_db
     ports:
-      - "3000:3000"
+      - '${APP_PORT:-3000}:3000'
     volumes:
       - .:/app
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npx ts-node src/server.ts"
@@ -30,7 +30,7 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/token_manager_db
     ports:
-      - "3001:3000"
+      - '${APP_DEV_PORT:-3000}:3000'
     volumes:
       - .:/app
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"

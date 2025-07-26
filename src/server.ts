@@ -3,6 +3,7 @@ import userRoutes from './routes/users';
 import tokenRoutes from './routes/tokens';
 import themeRoutes from './routes/themes';
 import groupRoutes from './routes/groups';
+import healthRoutes from './routes/health';
 
 const fastify = Fastify({
   logger: true,
@@ -13,6 +14,7 @@ fastify.register(userRoutes);
 fastify.register(tokenRoutes);
 fastify.register(themeRoutes);
 fastify.register(groupRoutes);
+fastify.register(healthRoutes);
 
 // Démarrage du serveur
 const start = async () => {

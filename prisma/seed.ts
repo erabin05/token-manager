@@ -3,6 +3,13 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
+  // Nettoyer la base : supprimer dans l'ordre des dépendances
+  await prisma.tokenValue.deleteMany({});
+  await prisma.token.deleteMany({});
+  await prisma.tokenGroup.deleteMany({});
+  await prisma.theme.deleteMany({});
+  await prisma.user.deleteMany({});
+
   // Créer un utilisateur seulement s'il n'existe pas
   const existingUser = await prisma.user.findUnique({
     where: { email: 'alice@example.com' },

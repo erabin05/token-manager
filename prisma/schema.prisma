@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "darwin-arm64"]
 }
 
 datasource db {
@@ -25,7 +25,7 @@ model Token {
   name        String
   tokenValues TokenValue[]
   groupId     Int?
-  group       TokenGroup?  @relation(fields: [groupId], references: [id])
+  group       TokenGroup?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -35,7 +35,7 @@ model TokenGroup {
   name      String
   tokens    Token[]
   parentId  Int?
-  parent    TokenGroup? @relation("GroupToGroup", fields: [parentId], references: [id])
+  parent    TokenGroup? @relation("GroupToGroup", fields: [parentId], references: [id], onDelete: Cascade)
   children  TokenGroup[] @relation("GroupToGroup")
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
