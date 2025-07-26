@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-token_manager_db}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - token-manager-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      target: production
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-token_manager_db}
+      NODE_ENV: production
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    restart: always
+    networks:
+      - token-manager-network
+    command: sh -c "npx prisma migrate deploy && node dist/server.js"
+
+volumes:
+  db_data:
+
+networks:
+  token-manager-network:
+    driver: bridge 

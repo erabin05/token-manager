@@ -20,9 +20,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'docker-compose -f docker-compose.test.yml up --build -d',
+    command:
+      'docker-compose -f docker-compose.test.yml up --build -d && sleep 30',
     url: 'http://localhost:3001/health',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: 300 * 1000,
   },
 });

@@ -21,7 +21,7 @@ services:
       - '${APP_PORT:-3000}:3000'
     volumes:
       - .:/app
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npx ts-node src/server.ts"
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
     restart: always
   app-dev:
     build: .

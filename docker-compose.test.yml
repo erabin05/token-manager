@@ -20,7 +20,7 @@ services:
       - '3001:3000'
     volumes:
       - .:/app
-    command: sh -c "npx prisma generate && npx prisma db push && npm run prisma:seed && npm run dev"
+    command: sh -c "npx prisma generate && npx prisma db push && npm run prisma:seed && npx ts-node src/server.ts"
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 10s
