@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import 'dotenv/config';
 
 const prisma = new PrismaClient();
 
@@ -12,9 +13,9 @@ async function main() {
   await prisma.user.deleteMany({});
 
   // Créer l'utilisateur admin initial depuis les variables d'environnement
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@token-manager.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-  const adminName = process.env.ADMIN_NAME || 'System Administrator';
+  const adminEmail = process.env['ADMIN_EMAIL'] || 'admin@token-manager.com';
+  const adminPassword = process.env['ADMIN_PASSWORD'] || 'admin123';
+  const adminName = process.env['ADMIN_NAME'] || 'System Administrator';
 
   console.log(`Creating admin user: ${adminEmail}`);
 

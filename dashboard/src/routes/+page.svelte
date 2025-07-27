@@ -1,136 +1,208 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
+  import GroupSidebar from '$lib/components/GroupSidebar.svelte';
 
-  let email = '';
-  let password = '';
-  let error = '';
-  let loading = false;
+  let user: any = null;
+  let loading = true;
+  let groups: any[] = [];
+  let expandedGroups: Set<number> = new Set();
+  let selectedGroup: any = null;
 
-  async function handleLogin() {
-    if (!email || !password) {
-      error = 'Email et mot de passe requis';
+  onMount(async () => {
+    // Vérifier si l'utilisateur est connecté
+    const accessToken = localStorage.getItem('accessToken');
+    const userStr = localStorage.getItem('user');
+    
+    if (!accessToken || !userStr) {
+      goto('/login');
       return;
     }
 
-    loading = true;
-    error = '';
-
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      user = JSON.parse(userStr);
+      
+      // Charger les groupes
+      await loadGroups();
+    } catch (err) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      goto('/login');
+      return;
+    }
+
+    loading = false;
+  });
+
+  async function loadGroups() {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await fetch('/api/groups', {
         headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.ok) {
-        const data = await response.json();
-        // Stocker le token dans localStorage
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        // Rediriger vers le dashboard
-        goto('/dashboard');
+        groups = await response.json();
       } else {
-        const errorData = await response.json();
-        error = errorData.error || 'Erreur de connexion';
+        console.error('Erreur lors du chargement des groupes:', response.statusText);
       }
-    } catch (err) {
-      error = 'Erreur de connexion au serveur';
-    } finally {
-      loading = false;
+    } catch (error) {
+      console.error('Erreur lors du chargement des groupes:', error);
     }
+  }
+
+  function handleGroupClick(event: CustomEvent) {
+    const group = event.detail.group;
+    selectedGroup = group;
+    console.log('Groupe sélectionné:', group);
+    // Ici vous pourrez ajouter plus tard la logique pour afficher les tokens du groupe
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    goto('/login');
   }
 </script>
 
 <svelte:head>
-  <title>Connexion - Token Manager</title>
+  <title>Dashboard - Token Manager</title>
 </svelte:head>
 
-<main>
-  <h1>Connexion</h1>
-  
-  <form on:submit|preventDefault={handleLogin}>
-    <div>
-      <label for="email">Email:</label>
-      <input 
-        type="email" 
-        id="email" 
-        bind:value={email} 
-        required 
-        disabled={loading}
-      />
-    </div>
+{#if loading}
+  <main class="loading">
+    <p>Chargement...</p>
+  </main>
+{:else if user}
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <GroupSidebar 
+      {groups} 
+      {expandedGroups} 
+      on:groupClick={handleGroupClick}
+    />
     
-    <div>
-      <label for="password">Mot de passe:</label>
-      <input 
-        type="password" 
-        id="password" 
-        bind:value={password} 
-        required 
-        disabled={loading}
-      />
-    </div>
-    
-    {#if error}
-      <div class="error">{error}</div>
-    {/if}
-    
-    <button type="submit" disabled={loading}>
-      {loading ? 'Connexion...' : 'Se connecter'}
-    </button>
-  </form>
-</main>
+    <!-- Contenu principal -->
+    <main class="main-content">
+      <header>
+        <h1>Dashboard</h1>
+        <button on:click={handleLogout}>Déconnexion</button>
+      </header>
+      
+      <section class="content-section">
+        <h2>Bienvenue, {user.name} !</h2>
+        <p>Vous êtes connecté avec le rôle: <strong>{user.role}</strong></p>
+        <p>Email: {user.email}</p>
+        
+        {#if selectedGroup}
+          <div class="selected-group">
+            <h3>Groupe sélectionné</h3>
+            <p><strong>Nom:</strong> {selectedGroup.name}</p>
+            <p><strong>ID:</strong> {selectedGroup.id}</p>
+            {#if selectedGroup.children && selectedGroup.children.length > 0}
+              <p><strong>Sous-groupes:</strong> {selectedGroup.children.length}</p>
+            {/if}
+          </div>
+        {:else}
+          <p class="no-selection">Sélectionnez un groupe dans la sidebar pour voir ses détails</p>
+        {/if}
+      </section>
+    </main>
+  </div>
+{/if}
 
 <style>
-  main {
-    max-width: 400px;
-    margin: 50px auto;
+  .dashboard-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 1.2rem;
+    color: #666;
+  }
+  
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 20px;
-  }
-  
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  div {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  label {
-    font-weight: bold;
-  }
-  
-  input {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
   
   button {
-    padding: 10px;
-    background-color: #007bff;
+    padding: 8px 16px;
+    background-color: #dc3545;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-  }
-  
-  button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  
-  .error {
-    color: red;
     font-size: 14px;
+  }
+  
+  button:hover {
+    background-color: #c82333;
+  }
+  
+  .content-section {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+  }
+  
+  h2 {
+    margin-top: 0;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  p {
+    margin: 10px 0;
+    color: #555;
+  }
+
+  .selected-group {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .selected-group h3 {
+    margin-top: 0;
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+  }
+
+  .no-selection {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 50px;
+    font-size: 1.1rem;
   }
 </style>
