@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './utils/test-setup';
 import { UserRole } from '@prisma/client';
 import {
   assertResponseOk,
@@ -12,21 +12,19 @@ import { prisma, createUserWithRole, createAuthHeaders } from './utils/auth';
 import { cleanupDatabaseExceptThemes } from './utils/database';
 
 test.describe('Tokens API E2E Tests', () => {
-  let maintainerUser: any;
-
   test.beforeEach(async () => {
     // Clean up the database before each test (except themes)
     await cleanupDatabaseExceptThemes();
-
-    // Créer un utilisateur maintainer pour les tests
-    maintainerUser = await createUserWithRole(UserRole.MAINTAINER);
   });
 
   test.afterAll(async () => {
     await prisma.$disconnect();
   });
 
-  test('should create token and verify DB state', async ({ request }) => {
+  test('should create token and verify DB state', async ({
+    request,
+    authInfo,
+  }) => {
     // Test data
     const tokenName = generateUniqueName('test-token');
     const expectedValue = '#000000';
@@ -39,7 +37,7 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Create token via API
     const createResponse = await request.post('/tokens', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: {
         name: tokenName,
         defaultValue: expectedValue,
@@ -60,7 +58,10 @@ test.describe('Tokens API E2E Tests', () => {
     assertTokenValue(dbToken!.tokenValues[1], expectedValue);
   });
 
-  test('should delete token and verify DB state', async ({ request }) => {
+  test('should delete token and verify DB state', async ({
+    request,
+    authInfo,
+  }) => {
     // Test data
     const tokenName = `delete-token-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
@@ -76,7 +77,7 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Create token via API
     const createResponse = await request.post('/tokens', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: {
         name: tokenName,
         defaultValue: '#000000',
@@ -95,7 +96,7 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Delete token via API
     const deleteResponse = await request.delete(`/tokens/${tokenId}`, {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
     });
     assertResponseOk(deleteResponse, 'token deletion');
 
@@ -108,6 +109,7 @@ test.describe('Tokens API E2E Tests', () => {
 
   test('should get tokens and verify response matches DB', async ({
     request,
+    authInfo,
   }) => {
     // Test data
     const tokenName1 = `unique-token-1-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -125,20 +127,20 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Create tokens via API
     const token1Response = await request.post('/tokens', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: tokenName1, defaultValue: '#111111' },
     });
     assertResponseOk(token1Response, 'first token creation');
 
     const token2Response = await request.post('/tokens', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: tokenName2, defaultValue: '#222222' },
     });
     assertResponseOk(token2Response, 'second token creation');
 
     // Get tokens via API
     const getResponse = await request.get('/tokens', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
     });
     assertResponseOk(getResponse, 'tokens retrieval');
 
@@ -155,7 +157,7 @@ test.describe('Tokens API E2E Tests', () => {
     ).toBeGreaterThan(0);
   });
 
-  test('should get specific token by ID', async ({ request }) => {
+  test('should get specific token by ID', async ({ request, authInfo }) => {
     // Test data
     const tokenName = `specific-token-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
@@ -171,7 +173,7 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Create token via API
     const createResponse = await request.post('/tokens', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: {
         name: tokenName,
         defaultValue: '#333333',
@@ -184,7 +186,7 @@ test.describe('Tokens API E2E Tests', () => {
 
     // Get specific token via API
     const getResponse = await request.get(`/tokens/${tokenId}`, {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
     });
     assertResponseOk(getResponse, 'token retrieval');
 

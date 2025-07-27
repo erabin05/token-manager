@@ -4,8 +4,13 @@ import { defineConfig, devices } from '@playwright/test';
 const testEnv = process.env.TEST_ENV || 'dev';
 const composeFile =
   testEnv === 'prod' ? 'docker-compose.prod.yml' : 'docker-compose.dev.yml';
+
+// Utiliser la variable d'environnement BASE_URL si fournie, sinon utiliser les URLs par défaut
 const baseURL =
-  testEnv === 'prod' ? 'http://localhost:3000' : 'http://localhost:3000';
+  process.env.BASE_URL ||
+  (testEnv === 'prod'
+    ? 'http://localhost:3000'
+    : 'http://token-manager.server.localhost');
 
 export default defineConfig({
   testDir: './tests/e2e',

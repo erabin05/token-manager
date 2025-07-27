@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './utils/test-setup';
 import { UserRole } from '@prisma/client';
 import { assertResponseOk } from './utils/assertions';
 import { generateUniqueName } from './utils/factories';
@@ -7,14 +7,9 @@ import { cleanupDatabase } from './utils/database';
 import bcrypt from 'bcrypt';
 
 test.describe('Users API E2E Tests', () => {
-  let adminUser: any;
-
   test.beforeEach(async () => {
     // Clean DB before each test (respect dependencies order)
     await cleanupDatabase();
-
-    // Créer un utilisateur admin pour les tests
-    adminUser = await createUserWithRole(UserRole.ADMIN);
   });
 
   test.afterAll(async () => {
@@ -23,6 +18,7 @@ test.describe('Users API E2E Tests', () => {
 
   test('should get users and verify response matches DB', async ({
     request,
+    authInfo,
   }) => {
     // Test data
     const userEmail1 = `${generateUniqueName('user1')}@test.com`;
@@ -53,7 +49,7 @@ test.describe('Users API E2E Tests', () => {
 
     // Get users via API with authentication
     const getResponse = await request.get('/users', {
-      headers: createAuthHeaders(adminUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
     });
     assertResponseOk(getResponse, 'users retrieval');
 
@@ -80,20 +76,26 @@ test.describe('Users API E2E Tests', () => {
     ).toBeGreaterThan(0);
   });
 
-  test('should return empty array when no users exist', async ({ request }) => {
-    // Clean users again to ensure empty state
-    await prisma.user.deleteMany();
+  test('should return empty array when no users exist', async ({
+    request,
+    authInfo,
+  }) => {
+    // Clean users again to ensure empty state (except admin)
+    await prisma.user.deleteMany({
+      where: {
+        email: {
+          not: process.env.ADMIN_EMAIL || 'admin@token-manager.com',
+        },
+      },
+    });
 
-    // Create a new admin user for this test
-    const testAdminUser = await createUserWithRole(UserRole.ADMIN);
-
-    // Verify no users in DB (except admin)
+    // Verify only admin user in DB
     const initialUsers = await prisma.user.count();
     expect(initialUsers, 'Should start with only admin user').toBe(1);
 
     // Get users via API with authentication
     const getResponse = await request.get('/users', {
-      headers: { 'x-user-id': testAdminUser.id.toString() },
+      headers: createAuthHeaders(authInfo.accessToken),
     });
     assertResponseOk(getResponse, 'users retrieval');
 

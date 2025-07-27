@@ -14,7 +14,22 @@ fi
 
 COMPOSE_FILE="docker-compose.${TARGET_ENV}.yml"
 PROJECT_NAME="token-manager-${TARGET_ENV}"
-BASE_URL="http://localhost:3000"
+
+# URLs pour les différents environnements
+DEV_URL="http://token-manager.server.localhost"
+PROD_URL="http://localhost:3000"
+
+# Fonction pour obtenir l'URL de base selon l'environnement
+get_base_url() {
+    local env=$1
+    if [ "$env" = "dev" ]; then
+        echo "$DEV_URL"
+    else
+        echo "$PROD_URL"
+    fi
+}
+
+BASE_URL=$(get_base_url "$TARGET_ENV")
 
 echo "🔄 Switch vers l'environnement: ${TARGET_ENV}..."
 
@@ -25,8 +40,8 @@ show_env_status() {
     # Vérifier l'environnement dev
     if docker ps --format "table {{.Names}}" | grep -q "token-manager-dev_server_1"; then
         echo "   🟢 DEV: En cours d'exécution"
-        if curl -f -s "http://localhost:3000/health" > /dev/null 2>&1; then
-            echo "      ✅ Application répond sur http://localhost:3000"
+        if curl -f -s "${DEV_URL}/health" > /dev/null 2>&1; then
+            echo "      ✅ Application répond sur ${DEV_URL}"
         else
             echo "      ⚠️  Application ne répond pas"
         fi
@@ -37,8 +52,8 @@ show_env_status() {
     # Vérifier l'environnement prod
     if docker ps --format "table {{.Names}}" | grep -q "token-manager-prod_server_1"; then
         echo "   🟢 PROD: En cours d'exécution"
-        if curl -f -s "http://localhost:3000/health" > /dev/null 2>&1; then
-            echo "      ✅ Application répond sur http://localhost:3000"
+        if curl -f -s "${PROD_URL}/health" > /dev/null 2>&1; then
+            echo "      ✅ Application répond sur ${PROD_URL}"
         else
             echo "      ⚠️  Application ne répond pas"
         fi

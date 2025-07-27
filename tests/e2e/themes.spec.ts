@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './utils/test-setup';
 import { UserRole } from '@prisma/client';
 import {
   assertResponseOk,
@@ -11,27 +11,25 @@ import { prisma, createUserWithRole, createAuthHeaders } from './utils/auth';
 import { cleanupDatabaseExceptThemes } from './utils/database';
 
 test.describe('Themes API E2E Tests', () => {
-  let maintainerUser: any;
-
   test.beforeEach(async () => {
     // Clean up before each test (except themes)
     await cleanupDatabaseExceptThemes();
-
-    // Créer un utilisateur maintainer pour les tests
-    maintainerUser = await createUserWithRole(UserRole.MAINTAINER);
   });
 
   test.afterAll(async () => {
     await prisma.$disconnect();
   });
 
-  test('should create theme and verify DB state', async ({ request }) => {
+  test('should create theme and verify DB state', async ({
+    request,
+    authInfo,
+  }) => {
     // Test data
     const themeName = generateUniqueName('theme');
 
     // Create theme via API
     const createResponse = await request.post('/themes', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: themeName },
     });
     assertResponseOk(createResponse, 'theme creation');
@@ -49,6 +47,7 @@ test.describe('Themes API E2E Tests', () => {
 
   test('should create theme with parent and verify DB state', async ({
     request,
+    authInfo,
   }) => {
     // Test data
     const parentName = generateUniqueName('parent-theme');
@@ -56,7 +55,7 @@ test.describe('Themes API E2E Tests', () => {
 
     // Create parent theme first
     const parentResponse = await request.post('/themes', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: parentName },
     });
     assertResponseOk(parentResponse, 'parent theme creation');
@@ -65,7 +64,7 @@ test.describe('Themes API E2E Tests', () => {
 
     // Create child theme with parent reference
     const childResponse = await request.post('/themes', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: childName, parentId: parentTheme.id },
     });
     assertResponseOk(childResponse, 'child theme creation');
@@ -88,13 +87,16 @@ test.describe('Themes API E2E Tests', () => {
     );
   });
 
-  test('should delete theme and verify DB state', async ({ request }) => {
+  test('should delete theme and verify DB state', async ({
+    request,
+    authInfo,
+  }) => {
     // Test data
     const themeName = generateUniqueName('theme-to-delete');
 
     // Create theme via API
     const createResponse = await request.post('/themes', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: themeName },
     });
     assertResponseOk(createResponse, 'theme creation');
@@ -110,7 +112,7 @@ test.describe('Themes API E2E Tests', () => {
 
     // Delete theme via API
     const deleteResponse = await request.delete(`/themes/${themeId}`, {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
     });
     assertResponseOk(deleteResponse, 'theme deletion');
 
@@ -123,26 +125,27 @@ test.describe('Themes API E2E Tests', () => {
 
   test('should get themes and verify response matches DB', async ({
     request,
+    authInfo,
   }) => {
     // Test data
     const themeName1 = generateUniqueName('theme-1');
     const themeName2 = generateUniqueName('theme-2');
 
     const theme1Response = await request.post('/themes', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: themeName1 },
     });
     assertResponseOk(theme1Response, 'first theme creation');
 
     const theme2Response = await request.post('/themes', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: themeName2 },
     });
     assertResponseOk(theme2Response, 'second theme creation');
 
     // Get themes via API
     const getResponse = await request.get('/themes', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
     });
     assertResponseOk(getResponse, 'themes retrieval');
 
@@ -171,6 +174,7 @@ test.describe('Themes API E2E Tests', () => {
 
   test('should create theme with tokens and verify token values are created', async ({
     request,
+    authInfo,
   }) => {
     // Test data
     const themeName = generateUniqueName('theme');
@@ -183,7 +187,7 @@ test.describe('Themes API E2E Tests', () => {
 
     // Create theme via API
     const createThemeResponse = await request.post('/themes', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: themeName },
     });
     assertResponseOk(createThemeResponse, 'theme creation');
@@ -191,13 +195,13 @@ test.describe('Themes API E2E Tests', () => {
 
     // Create two tokens via API
     const createToken1 = await request.post('/tokens', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: tokenName1, defaultValue: expectedValue },
     });
     assertResponseOk(createToken1, 'first token creation');
 
     const createToken2 = await request.post('/tokens', {
-      headers: createAuthHeaders(maintainerUser.id),
+      headers: createAuthHeaders(authInfo.accessToken),
       data: { name: tokenName2, defaultValue: expectedValue },
     });
     assertResponseOk(createToken2, 'second token creation');
