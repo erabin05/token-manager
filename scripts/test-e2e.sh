@@ -11,9 +11,9 @@ echo "🧪 Lancement des tests e2e intelligents..."
 detect_current_env() {
     local current_env=""
 
-    if docker ps --format "table {{.Names}}" | grep -q "token-manager-dev_app_1"; then
+    if docker ps --format "table {{.Names}}" | grep -q "token-manager-dev_server_1"; then
         current_env="dev"
-    elif docker ps --format "table {{.Names}}" | grep -q "token-manager-prod_app_1"; then
+    elif docker ps --format "table {{.Names}}" | grep -q "token-manager-prod_server_1"; then
         current_env="prod"
     fi
 

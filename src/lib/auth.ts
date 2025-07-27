@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { PrismaClient, UserRole } from '@prisma/client';
+import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
@@ -65,35 +66,49 @@ export interface AuthenticatedRequest extends FastifyRequest {
 }
 
 /**
- * Hook pour extraire l'utilisateur depuis les headers
+ * Hook pour extraire l'utilisateur depuis le token JWT
  */
 export const authenticateUser = async (
   request: AuthenticatedRequest,
   reply: FastifyReply
 ): Promise<void> => {
   try {
-    const userId = request.headers['x-user-id'] as string;
+    const authHeader = request.headers.authorization;
 
-    if (!userId) {
-      reply.status(401).send({ error: 'User ID header is required' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      reply
+        .status(401)
+        .send({ error: 'Authorization header with Bearer token is required' });
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: Number(userId) },
-    });
+    const token = authHeader.substring(7); // Enlever "Bearer "
 
-    if (!user) {
-      reply.status(401).send({ error: 'User not found' });
+    try {
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'your-secret-key'
+      ) as { userId: number; email: string; role: UserRole };
+
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+      });
+
+      if (!user) {
+        reply.status(401).send({ error: 'User not found' });
+        return;
+      }
+
+      request.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role as UserRole,
+      };
+    } catch (jwtError) {
+      reply.status(401).send({ error: 'Invalid or expired token' });
       return;
     }
-
-    request.user = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role as UserRole,
-    };
   } catch (error) {
     console.error('Authentication error:', error);
     reply.status(500).send({ error: 'Authentication failed' });

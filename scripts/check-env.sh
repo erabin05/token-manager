@@ -14,7 +14,7 @@ check_env() {
   echo "📋 Environnement: ${env}"
   
   # Vérifier si les conteneurs sont en cours d'exécution
-  if docker ps --format "table {{.Names}}" | grep -q "${project_name}_app_1"; then
+  if docker ps --format "table {{.Names}}" | grep -q "${project_name}_server_1"; then
     echo "   ✅ Application: En cours d'exécution"
     
     # Vérifier si l'application répond

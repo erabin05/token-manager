@@ -4,6 +4,7 @@ import { assertResponseOk } from './utils/assertions';
 import { generateUniqueName } from './utils/factories';
 import { prisma, createUserWithRole, createAuthHeaders } from './utils/auth';
 import { cleanupDatabase } from './utils/database';
+import bcrypt from 'bcrypt';
 
 test.describe('Users API E2E Tests', () => {
   let adminUser: any;
@@ -29,11 +30,24 @@ test.describe('Users API E2E Tests', () => {
     const userName1 = 'User 1';
     const userName2 = 'User 2';
 
+    // Hasher les mots de passe
+    const hashedPassword = await bcrypt.hash('password123', 12);
+
     // Create test users directly in DB
     await prisma.user.createMany({
       data: [
-        { email: userEmail1, name: userName1, role: UserRole.VIEWER },
-        { email: userEmail2, name: userName2, role: UserRole.MAINTAINER },
+        {
+          email: userEmail1,
+          name: userName1,
+          password: hashedPassword,
+          role: UserRole.VIEWER,
+        },
+        {
+          email: userEmail2,
+          name: userName2,
+          password: hashedPassword,
+          role: UserRole.MAINTAINER,
+        },
       ],
     });
 

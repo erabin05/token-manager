@@ -1,4 +1,5 @@
 import { PrismaClient, UserRole } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -10,26 +11,47 @@ async function main() {
   await prisma.theme.deleteMany({});
   await prisma.user.deleteMany({});
 
-  // Créer des utilisateurs avec différents rôles
+  // Créer l'utilisateur admin initial depuis les variables d'environnement
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@token-manager.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const adminName = process.env.ADMIN_NAME || 'System Administrator';
+
+  console.log(`Creating admin user: ${adminEmail}`);
+
+  const adminPasswordHash = await bcrypt.hash(adminPassword, 12);
+
+  const adminUser = await prisma.user.create({
+    data: {
+      email: adminEmail,
+      name: adminName,
+      password: adminPasswordHash,
+      role: UserRole.ADMIN,
+    },
+  });
+
+  console.log(`Admin user created with ID: ${adminUser.id}`);
+
+  // Hasher un mot de passe par défaut pour les autres utilisateurs
+  const defaultPassword = await bcrypt.hash('password123', 12);
+
+  // Créer des utilisateurs avec différents rôles (optionnel pour le développement)
   const users = [
     {
       email: 'viewer@example.com',
       name: 'Viewer User',
+      password: defaultPassword,
       role: UserRole.VIEWER,
     },
     {
       email: 'maintainer@example.com',
       name: 'Maintainer User',
+      password: defaultPassword,
       role: UserRole.MAINTAINER,
-    },
-    {
-      email: 'admin@example.com',
-      name: 'Admin User',
-      role: UserRole.ADMIN,
     },
     {
       email: 'alice@example.com',
       name: 'Alice',
+      password: defaultPassword,
       role: UserRole.VIEWER,
     },
   ];

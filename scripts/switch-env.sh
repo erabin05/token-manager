@@ -23,7 +23,7 @@ show_env_status() {
     echo "📊 État des environnements Docker:"
     
     # Vérifier l'environnement dev
-    if docker ps --format "table {{.Names}}" | grep -q "token-manager-dev_app_1"; then
+    if docker ps --format "table {{.Names}}" | grep -q "token-manager-dev_server_1"; then
         echo "   🟢 DEV: En cours d'exécution"
         if curl -f -s "http://localhost:3000/health" > /dev/null 2>&1; then
             echo "      ✅ Application répond sur http://localhost:3000"
@@ -35,7 +35,7 @@ show_env_status() {
     fi
     
     # Vérifier l'environnement prod
-    if docker ps --format "table {{.Names}}" | grep -q "token-manager-prod_app_1"; then
+    if docker ps --format "table {{.Names}}" | grep -q "token-manager-prod_server_1"; then
         echo "   🟢 PROD: En cours d'exécution"
         if curl -f -s "http://localhost:3000/health" > /dev/null 2>&1; then
             echo "      ✅ Application répond sur http://localhost:3000"
@@ -50,9 +50,9 @@ show_env_status() {
 
 # Fonction pour détecter l'environnement actuel
 detect_current_env() {
-    if docker ps --format "table {{.Names}}" | grep -q "token-manager-dev_app_1"; then
+    if docker ps --format "table {{.Names}}" | grep -q "token-manager-dev_server_1"; then
         echo "dev"
-    elif docker ps --format "table {{.Names}}" | grep -q "token-manager-prod_app_1"; then
+    elif docker ps --format "table {{.Names}}" | grep -q "token-manager-prod_server_1"; then
         echo "prod"
     else
         echo ""
@@ -64,14 +64,14 @@ stop_all_envs() {
     echo "🛑 Arrêt de tous les environnements..."
     
     # Arrêter dev
-    if docker ps --format "table {{.Names}}" | grep -q "token-manager-dev_app_1"; then
+    if docker ps --format "table {{.Names}}" | grep -q "token-manager-dev_server_1"; then
         echo "   🛑 Arrêt de l'environnement dev..."
         docker-compose -f docker-compose.dev.yml --project-name token-manager-dev down --volumes --remove-orphans 2>/dev/null || true
         echo "   ✅ Environnement dev arrêté"
     fi
     
     # Arrêter prod
-    if docker ps --format "table {{.Names}}" | grep -q "token-manager-prod_app_1"; then
+    if docker ps --format "table {{.Names}}" | grep -q "token-manager-prod_server_1"; then
         echo "   🛑 Arrêt de l'environnement prod..."
         docker-compose -f docker-compose.prod.yml --project-name token-manager-prod down --volumes --remove-orphans 2>/dev/null || true
         echo "   ✅ Environnement prod arrêté"

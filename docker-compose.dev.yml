@@ -18,27 +18,33 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: token_manager_db
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-token_manager_db}
     ports:
       - '${DB_PORT:-5432}:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
 
-  app:
+  server:
     build: .
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql://user:password@db:5432/token_manager_db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-token_manager_db}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@token-manager.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      ADMIN_NAME: ${ADMIN_NAME:-System Administrator}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your-refresh-secret-key}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`token-manager.server.localhost`)"
-      - "traefik.http.services.app.loadbalancer.server.port=3000"
+      - "traefik.http.routers.server.rule=Host(`token-manager.server.localhost`)"
+      - "traefik.http.services.server.loadbalancer.server.port=3000"
     volumes:
       - .:/app
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+      - /app/node_modules
+    command: sh -c "npx prisma generate && npx prisma db push && npx ts-node prisma/seed.ts && npm run build && node dist/server.js"
     restart: always
   
   prisma-studio:
@@ -46,7 +52,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql://user:password@db:5432/token_manager_db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-token_manager_db}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.prisma.rule=Host(`token-manager.prisma.localhost`)"
@@ -59,9 +65,9 @@ services:
   playwright-e2e:
     build: .
     depends_on:
-      - app
+      - server
     environment:
-      DATABASE_URL: postgresql://user:password@db:5432/token_manager_db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-token_manager_db}
       TEST_ENV: dev
       WATCH_MODE: "true"
     ports:

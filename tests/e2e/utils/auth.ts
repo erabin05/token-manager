@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole } from '@prisma/client';
 import { generateUniqueName } from './factories';
+import bcrypt from 'bcrypt';
 
 // Configuration Prisma partagée - utilise la configuration par défaut
 export const prisma = new PrismaClient();
@@ -8,10 +9,13 @@ export const prisma = new PrismaClient();
  * Créer un utilisateur avec un rôle spécifique
  */
 export async function createUserWithRole(role: UserRole) {
+  const hashedPassword = await bcrypt.hash('password123', 12);
+
   return await prisma.user.create({
     data: {
       email: `${generateUniqueName('user')}@test.com`,
       name: generateUniqueName('user-name'),
+      password: hashedPassword,
       role,
     },
   });

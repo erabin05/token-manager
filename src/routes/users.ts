@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify';
+import bcrypt from 'bcrypt';
 import prisma from '../lib/prisma';
 import {
   authenticateUser,
@@ -24,6 +25,8 @@ export default async function userRoutes(fastify: FastifyInstance) {
           email: true,
           name: true,
           role: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
       return users;
@@ -47,6 +50,8 @@ export default async function userRoutes(fastify: FastifyInstance) {
           email: true,
           name: true,
           role: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
 
@@ -69,27 +74,48 @@ export default async function userRoutes(fastify: FastifyInstance) {
       const {
         email,
         name,
+        password,
         role = UserRole.VIEWER,
       } = request.body as {
         email: string;
         name: string;
+        password: string;
         role?: UserRole;
       };
 
       // Validation
-      if (!email || !name) {
-        reply.status(400).send({ error: 'Email and name are required' });
+      if (!email || !name || !password) {
+        reply
+          .status(400)
+          .send({ error: 'Email, name and password are required' });
+        return;
+      }
+
+      if (password.length < 6) {
+        reply
+          .status(400)
+          .send({ error: 'Password must be at least 6 characters long' });
         return;
       }
 
       try {
+        // Hasher le mot de passe
+        const hashedPassword = await bcrypt.hash(password, 12);
+
         const user = await prisma.user.create({
-          data: { email, name, role },
+          data: {
+            email,
+            name,
+            password: hashedPassword,
+            role,
+          },
           select: {
             id: true,
             email: true,
             name: true,
             role: true,
+            createdAt: true,
+            updatedAt: true,
           },
         });
 
@@ -115,21 +141,41 @@ export default async function userRoutes(fastify: FastifyInstance) {
     async (request: AuthenticatedRequest, reply) => {
       const { id } = request.params as { id: string };
       const userId = parseInt(id);
-      const { email, name, role } = request.body as {
+      const { email, name, password, role } = request.body as {
         email?: string;
         name?: string;
+        password?: string;
         role?: UserRole;
       };
 
       try {
+        const updateData: any = {};
+
+        if (email !== undefined) updateData.email = email;
+        if (name !== undefined) updateData.name = name;
+        if (role !== undefined) updateData.role = role;
+
+        // Si un nouveau mot de passe est fourni, le hasher
+        if (password !== undefined) {
+          if (password.length < 6) {
+            reply
+              .status(400)
+              .send({ error: 'Password must be at least 6 characters long' });
+            return;
+          }
+          updateData.password = await bcrypt.hash(password, 12);
+        }
+
         const user = await prisma.user.update({
           where: { id: userId },
-          data: { email, name, role },
+          data: updateData,
           select: {
             id: true,
             email: true,
             name: true,
             role: true,
+            createdAt: true,
+            updatedAt: true,
           },
         });
 

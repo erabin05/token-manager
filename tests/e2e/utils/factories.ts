@@ -1,12 +1,14 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+// Configuration Prisma partagée
+export const prisma = new PrismaClient();
 
 /**
- * Generate a unique name with timestamp and random number
+ * Génère un nom unique basé sur un préfixe et un timestamp
  */
 export function generateUniqueName(prefix: string): string {
-  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 /**
@@ -139,15 +141,24 @@ export class UserFactory {
     overrides: Partial<{
       email: string;
       name: string;
+      password: string;
+      role: UserRole;
     }> = {}
   ) {
     const email = overrides.email || `${generateUniqueName('user')}@test.com`;
     const name = overrides.name || `User ${Date.now()}`;
+    const password = overrides.password || 'password123';
+    const role = overrides.role || UserRole.VIEWER;
+
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     return await prisma.user.create({
       data: {
         email,
         name,
+        password: hashedPassword,
+        role,
       },
     });
   }

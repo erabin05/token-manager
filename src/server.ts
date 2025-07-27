@@ -4,12 +4,14 @@ import tokenRoutes from './routes/tokens';
 import themeRoutes from './routes/themes';
 import groupRoutes from './routes/groups';
 import healthRoutes from './routes/health';
+import authRoutes from './routes/auth';
 
 const fastify = Fastify({
   logger: true,
 });
 
 // Enregistrer les routes
+fastify.register(authRoutes);
 fastify.register(userRoutes);
 fastify.register(tokenRoutes);
 fastify.register(themeRoutes);
