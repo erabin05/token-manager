@@ -82,6 +82,13 @@ else
     echo "💡 Exécutez: npm run setup:hosts"
 fi
 
+if grep -q "token-manager.dashboard.localhost" "$HOSTS_FILE" 2>/dev/null; then
+    echo "✅ Entrée token-manager.dashboard.localhost présente"
+else
+    echo "❌ Entrée token-manager.dashboard.localhost manquante"
+    echo "💡 Exécutez: npm run setup:hosts"
+fi
+
 # Vérifier la connectivité
 echo ""
 echo "🔗 Vérification de la connectivité..."
@@ -100,6 +107,13 @@ else
     echo "❌ Application ne répond pas sur http://token-manager.server.localhost"
 fi
 
+# Test dashboard
+if curl -f -s "http://token-manager.dashboard.localhost" > /dev/null 2>&1; then
+    echo "✅ Dashboard répond sur http://token-manager.dashboard.localhost"
+else
+    echo "❌ Dashboard ne répond pas sur http://token-manager.dashboard.localhost"
+fi
+
 # Vérifier les logs des conteneurs
 echo ""
 echo "📋 Logs des conteneurs..."
@@ -109,6 +123,9 @@ if [ "$DEV_RUNNING" -gt 0 ]; then
     echo ""
     echo "📊 Logs de Traefik:"
     docker logs --tail 5 token-manager-dev_traefik_1 2>/dev/null || echo "   Aucun log disponible"
+    echo ""
+    echo "📊 Logs du Dashboard:"
+    docker logs --tail 5 token-manager-dev_dashboard_1 2>/dev/null || echo "   Aucun log disponible"
 fi
 
 echo ""
@@ -119,9 +136,11 @@ elif [ "$DEV_RUNNING" -gt 0 ]; then
     echo "   ✅ Environnement DEV actif"
     echo "   🌐 Accédez à: http://token-manager.server.localhost"
     echo "   🗄️  Prisma Studio: http://token-manager.prisma.localhost"
+    echo "   📊 Dashboard: http://token-manager.dashboard.localhost"
 elif [ "$PROD_RUNNING" -gt 0 ]; then
     echo "   ✅ Environnement PROD actif"
     echo "   🌐 Accédez à: http://localhost:3000"
+    echo "   📊 Dashboard: http://localhost:3001"
 fi
 
 echo ""

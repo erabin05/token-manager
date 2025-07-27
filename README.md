@@ -1,200 +1,201 @@
 # Token Manager
 
-A modern design token management system built with Fastify, Prisma, and PostgreSQL. This project provides a robust API for managing design tokens, themes, and user groups with a focus on performance and developer experience.
+Un gestionnaire de tokens avec authentification JWT, interface graphique SvelteKit et tests E2E.
 
-## 🚀 Quick Start
+## 🏗️ Architecture
 
-### Prerequisites
-
-- Node.js 20+
-- Docker and Docker Compose
-- Git
-
-### Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone <repository-url>
-   cd token-manager
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Start the development environment**
-
-   ```bash
-   npm run docker:dev
-   ```
-
-4. **Access the API**
-   - Main API: http://token-manager.server.localhost
-   - Prisma Studio: http://token-manager.prisma.localhost
-   - Playwright E2E: http://localhost:9323
-   - Traefik Dashboard: http://localhost:8080
-   - Health check: http://token-manager.server.localhost/health
-
-## 🏗️ Build System
-
-This project uses **esbuild** for fast TypeScript compilation and bundling.
-
-```bash
-# Build the application
-npm run build
-
-# Build in watch mode
-npm run build:watch
-
-# Run the built application
-npm run start
+```
+token-manager/
+├── server/          # API Fastify + Prisma + Base de données
+├── dashboard/       # Interface SvelteKit
+├── scripts/         # Scripts utilitaires
+├── tests/           # Tests E2E Playwright
+└── docker-compose.* # Configuration Docker
 ```
 
-## 🐳 Docker Environments
+## 🚀 Démarrage rapide
 
-### Development
+### Développement
 
 ```bash
-# Start development environment (background)
+# Installer les dépendances
+npm install
+cd server && npm install
+cd ../dashboard && npm install
+
+# Configurer les hosts (macOS/Linux)
+npm run setup:hosts
+
+# Lancer l'environnement de développement
 npm run docker:dev
 
-# View real-time logs
-npm run docker:dev:logs
-
-# Stop development environment
-npm run docker:dev:down
-
-# Restart development environment
-npm run docker:dev:restart
+# Accéder aux services :
+# - Dashboard: http://token-manager.dashboard.localhost
+# - API: http://token-manager.server.localhost
+# - Prisma Studio: http://token-manager.prisma.localhost
+# - Traefik: http://localhost:8080
 ```
 
 ### Production
 
 ```bash
-# Deploy to production
-npm run deploy
-
-# Or manually
 npm run docker:prod
-
-# Stop production
-npm run docker:prod:down
 ```
 
-## 📋 Available Scripts
+## 📋 Commandes disponibles
 
-- `npm run dev` - Development with hot reload
-- `npm run build` - Build with esbuild
-- `npm run start` - Run the built application
-- `npm run docker:dev` - Docker development (background)
-- `npm run docker:dev:logs` - View development logs
-- `npm run docker:dev:down` - Stop development environment
-- `npm run docker:dev:restart` - Restart development environment
-- `npm run docker:dev:studio` - View Prisma Studio logs
-- `npm run docker:dev:playwright` - View Playwright E2E logs
-- `npm run docker:dev:traefik` - View Traefik logs
-- `npm run docker:prod` - Docker production
-- `npm run deploy` - Complete production deployment
-- `npm run check:env` - Vérifier l'état des environnements Docker
-- `npm run docker:switch:dev` - Switcher vers l'environnement Docker de développement
-- `npm run docker:switch:prod` - Switcher vers l'environnement Docker de production
-- `npm run db:restore` - Restaurer la base de données avec les données de test (seed)
-- `npm run test:users` - Créer des utilisateurs de test et afficher leurs IDs pour test-api.http
-
-## 🧪 Testing
-
-### End-to-End Tests
-
-Le projet utilise Playwright pour les tests end-to-end. Vous pouvez choisir d'exécuter les tests sur l'environnement de développement ou de production :
-
-#### Tests rapides (développement quotidien)
-
-````bash
-# Tests intelligents (détectent automatiquement l'environnement)
-npm run test:e2e
-
-# Interface utilisateur pour les tests
-npm run test:e2e:ui:dev    # Interface sur dev
-npm run test:e2e:ui:prod   # Interface sur prod
-
-# Mode debug
-npm run test:e2e:debug:dev  # Debug sur dev
-npm run test:e2e:debug:prod # Debug sur prod
-
-# Mode watch avec HMR (dans Docker)
-npm run test:e2e:watch:dev  # Interface HMR sur dev
-npm run test:e2e:watch:prod # Interface HMR sur prod
-
-**Gestion intelligente des environnements Docker** : Les tests rapides :
-
-- **Détectent** automatiquement l'environnement Docker actuel (dev ou prod)
-- **Utilisent** l'environnement détecté (rapide)
-- **Démarrent** l'environnement dev par défaut si aucun n'est actif
-- **Affichent** l'environnement utilisé et la commande pour switcher
-
-#### Tests avec nettoyage complet (CI/CD, validation)
+### Serveur & Base de données
 
 ```bash
-# Tests avec nettoyage complet (utilise la même logique intelligente)
-npm run test:e2e:clean
-````
-
-**Note** : Les tests intelligents (`npm run test:e2e`) sont maintenant suffisants pour la plupart des cas d'usage, y compris le développement quotidien et les validations.
-
-## 📁 Project Structure
-
+npm run dev              # Développement serveur
+npm run build            # Build serveur
+npm run start            # Démarrage serveur
+npm run db:seed          # Seed base de données
+npm run db:reset         # Reset + seed base de données
+npm run db:studio        # Prisma Studio
 ```
-token-manager/
-├── src/                    # TypeScript source code
-├── dist/                   # Built code with esbuild
-├── prisma/                 # Prisma schema and migrations
-├── tests/                  # Playwright tests
-├── test-api.http          # Fichier de test API avec authentification
-├── docker-compose.dev.yml  # Docker development configuration
-├── docker-compose.prod.yml # Docker production configuration
-├── Dockerfile.prod         # Optimized production Dockerfile
-└── esbuild.config.cjs      # esbuild configuration
+
+### Dashboard
+
+```bash
+npm run dashboard:dev    # Développement dashboard
+npm run dashboard:build  # Build dashboard
+npm run dashboard:preview # Preview dashboard
+```
+
+### Tests
+
+```bash
+npm run test:e2e         # Tests E2E
+npm run test:e2e:ui      # Tests E2E avec UI
+npm run test:e2e:debug   # Tests E2E en mode debug
+```
+
+### Docker
+
+```bash
+npm run docker:dev       # Environnement de développement
+npm run docker:prod      # Environnement de production
+npm run docker:dev:down  # Arrêter l'environnement dev
+npm run docker:prod:down # Arrêter l'environnement prod
+```
+
+### Utilitaires
+
+```bash
+npm run setup:hosts      # Configurer les hosts
+npm run diagnose         # Diagnostic de l'environnement
+npm run check:env        # Vérifier les variables d'environnement
 ```
 
 ## 🔧 Configuration
 
-### Environment Variables
+### Variables d'environnement
 
-```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/token_manager_db
+Créez un fichier `.env` à la racine :
+
+```env
+# Base de données
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+POSTGRES_DB=token_manager_db
+DB_PORT=5432
 
 # Application
-NODE_ENV=development
+APP_PORT=3000
+DASHBOARD_PORT=80
+
+# JWT
+JWT_SECRET=your-secret-key
+JWT_REFRESH_SECRET=your-refresh-secret-key
+
+# Admin utilisateur
+ADMIN_EMAIL=admin@token-manager.com
+ADMIN_PASSWORD=admin123
+ADMIN_NAME=System Administrator
+
+# Tests
+TEST_ENV=dev
+BASE_URL=http://token-manager.server.localhost
 ```
 
-## 🛠️ Development Workflow
+## 🧪 Tests
 
-1. Install dependencies: `npm install`
-2. Set up database: `npx prisma migrate dev`
-3. Start development: `npm run dev`
+Les tests E2E utilisent Playwright et testent l'ensemble de l'application :
 
-## 🚀 Deployment
+- Authentification JWT
+- Gestion des utilisateurs
+- Gestion des thèmes
+- Gestion des tokens
+- Gestion des groupes
 
-1. Build application: `npm run build`
-2. Test locally: `npm run start`
-3. Deploy with Docker: `npm run deploy`
+### Exécuter les tests
 
-## 📚 Documentation
+```bash
+# Tests rapides (utilise l'admin existant)
+npm run test:e2e
 
-See `BUILD.md` for detailed build and deployment configuration.
+# Tests avec nettoyage complet
+npm run test:e2e:clean
 
-## 🤝 Contributing
+# Tests avec interface graphique
+npm run test:e2e:ui
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `npm run test:e2e:clean` (tests sur dev) ou `npm run test:e2e:clean:prod` (tests sur prod)
-5. Submit a pull request
+# Tests en mode debug
+npm run test:e2e:debug
+```
 
-## 📄 License
+## 📁 Structure détaillée
 
-This project is licensed under the ISC License.
+### `server/`
+
+- `src/` - Code source de l'API Fastify
+- `prisma/` - Schéma et seed de la base de données
+- `dist/` - Fichiers compilés
+- `package.json` - Dépendances serveur + DB
+- `esbuild.config.cjs` - Configuration de build
+- `Dockerfile` - Image Docker
+
+### `dashboard/`
+
+- `src/` - Code source SvelteKit
+- `static/` - Assets statiques
+- `package.json` - Dépendances dashboard
+- `Dockerfile` - Image Docker
+
+### `scripts/`
+
+- `test-e2e.sh` - Script de tests E2E
+- `setup-hosts.sh` - Configuration des hosts
+- `diagnose.sh` - Diagnostic
+- `switch-env.sh` - Changement d'environnement
+- `deploy.sh` - Déploiement
+- `restore-db.sh` - Restauration DB
+
+## 🔍 Diagnostic
+
+En cas de problème, utilisez :
+
+```bash
+npm run diagnose
+```
+
+Cela vérifiera :
+
+- L'état des conteneurs Docker
+- La connectivité des services
+- La configuration des hosts
+- Les variables d'environnement
+
+## 📝 Logs
+
+```bash
+# Logs de développement
+npm run docker:dev:logs
+
+# Logs spécifiques
+npm run docker:dev:traefik
+npm run docker:dev:playwright
+npm run docker:dev:studio
+npm run docker:dev:dashboard
+```

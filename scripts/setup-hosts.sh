@@ -7,6 +7,7 @@ HOSTS_FILE="/etc/hosts"
 HOSTS_ENTRIES=(
     "127.0.0.1 token-manager.server.localhost"
     "127.0.0.1 token-manager.prisma.localhost"
+    "127.0.0.1 token-manager.dashboard.localhost"
 )
 
 echo "🔧 Configuration du fichier hosts pour Traefik..."
@@ -30,4 +31,5 @@ done
 echo ""
 echo "🌐 Vous pouvez maintenant accéder à:"
 echo "   - Application: http://token-manager.server.localhost"
-echo "   - Prisma Studio: http://token-manager.prisma.localhost" 
+echo "   - Prisma Studio: http://token-manager.prisma.localhost"
+echo "   - Dashboard: http://token-manager.dashboard.localhost" 

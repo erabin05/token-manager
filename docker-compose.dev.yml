@@ -27,7 +27,7 @@ services:
       - db_data:/var/lib/postgresql/data
 
   server:
-    build: .
+    build: ./server
     depends_on:
       - db
     environment:
@@ -42,13 +42,31 @@ services:
       - "traefik.http.routers.server.rule=Host(`token-manager.server.localhost`)"
       - "traefik.http.services.server.loadbalancer.server.port=3000"
     volumes:
-      - .:/app
+      - ./server:/app
       - /app/node_modules
-    command: sh -c "npx prisma generate && npx prisma db push && npx ts-node prisma/seed.ts && npm run build && node dist/server.js"
+    command: sh -c "npx prisma generate && npx prisma db push && npm run db:seed && npm run build && node dist/server.js"
+    restart: always
+
+  dashboard:
+    build: 
+      context: ./dashboard
+      dockerfile: Dockerfile
+    depends_on:
+      - server
+    environment:
+      VITE_API_URL: http://token-manager.server.localhost
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`token-manager.dashboard.localhost`)"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=5173"
+    volumes:
+      - ./dashboard:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
     restart: always
   
   prisma-studio:
-    build: .
+    build: ./server
     depends_on:
       - db
     environment:
@@ -58,12 +76,12 @@ services:
       - "traefik.http.routers.prisma.rule=Host(`token-manager.prisma.localhost`)"
       - "traefik.http.services.prisma.loadbalancer.server.port=5555"
     volumes:
-      - .:/app
+      - ./server:/app
     command: sh -c "npx prisma generate && npx prisma studio --hostname 0.0.0.0 --port 5555"
     restart: always
 
   playwright-e2e:
-    build: .
+    build: ./server
     depends_on:
       - server
     environment:
@@ -73,9 +91,10 @@ services:
     ports:
       - "9323:9323"
     volumes:
-      - .:/app
+      - ./server:/app
       - /app/node_modules
-    command: sh -c "npx prisma generate && npx playwright install && npx playwright test --ui --ui-port 9323"
+      - ./tests:/tests
+    command: sh -c "npm run build && npx playwright install && npx playwright test --ui --ui-port 9323"
     restart: always
 
 volumes:

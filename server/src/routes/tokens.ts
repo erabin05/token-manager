@@ -89,11 +89,9 @@ export default async function tokenRoutes(fastify: FastifyInstance) {
       // Get all themes
       const themes = await prisma.theme.findMany({ select: { id: true } });
       if (themes.length === 0) {
-        return reply
-          .status(400)
-          .send({
-            error: 'No themes found. Please create at least one theme.',
-          });
+        return reply.status(400).send({
+          error: 'No themes found. Please create at least one theme.',
+        });
       }
 
       // Create the token and its values for each theme

@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "node esbuild.config.cjs",
-    "build:watch": "node esbuild.config.cjs --watch",
-    "start": "node dist/server.js",
-    "prisma:seed": "ts-node prisma/seed.ts",
+    "dev": "cd server && npm run dev",
+    "build": "cd server && npm run build",
+    "build:watch": "cd server && npm run build:watch",
+    "start": "cd server && npm run start",
+    "db:build": "cd server && npm run db:build",
+    "db:seed": "cd server && npm run db:seed",
+    "db:reset": "cd server && npm run db:reset",
+    "db:generate": "cd server && npm run db:generate",
+    "db:push": "cd server && npm run db:push",
+    "db:studio": "cd server && npm run db:studio",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",
@@ -32,10 +37,13 @@
     "docker:dev:down": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev down",
     "docker:dev:restart": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev restart",
     "docker:dev:studio": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev logs -f prisma-studio",
-    "docker:dev:playwright": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev logs -f playwright-ui",
+    "docker:dev:dashboard": "docker-compose -f docker-compose.dev.yml --project-name token-manager-dev logs -f dashboard",
     "docker:prod": "docker-compose -f docker-compose.prod.yml --project-name token-manager-prod up --build -d",
     "docker:prod:down": "docker-compose -f docker-compose.prod.yml --project-name token-manager-prod down",
-    "deploy": "./scripts/deploy.sh"
+    "deploy": "./scripts/deploy.sh",
+    "dashboard:dev": "cd dashboard && npm run dev",
+    "dashboard:build": "cd dashboard && npm run build",
+    "dashboard:preview": "cd dashboard && npm run preview"
   },
   "lint-staged": {
     "*.{js,ts,json,md}": [
@@ -46,26 +54,10 @@
   "author": "",
   "license": "ISC",
   "description": "",
-  "dependencies": {
-    "@fastify/type-provider-typebox": "^5.2.0",
-    "@prisma/client": "^6.12.0",
-    "@types/node": "^24.1.0",
-    "bcrypt": "^5.1.1",
-    "dotenv": "^17.2.1",
-    "fastify": "^5.4.0",
-    "jsonwebtoken": "^9.0.2",
-    "prisma": "^6.12.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
-  },
   "devDependencies": {
     "@playwright/test": "^1.54.1",
-    "@types/bcrypt": "^5.0.2",
-    "@types/jsonwebtoken": "^9.0.6",
-    "esbuild": "^0.20.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
-    "prettier": "^3.6.2",
-    "ts-node-dev": "^2.0.0"
+    "prettier": "^3.6.2"
   }
 }
